@@ -2,6 +2,7 @@ import { NextRequest, NextResponse, after } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { TextParser, PdfParser, DocxParser, DocumentParser } from '@/lib/parsers';
 import { extractFromTextAI } from '@/lib/ai/extractFromTextAI';
+import { translateWithGoogle } from '@/lib/translator';
 import type { ApiKeyItem } from '@/lib/ai/AIClient';
 import type { ExtractedLearningItem } from 'shared/schemas';
 
@@ -141,14 +142,20 @@ export async function POST(req: NextRequest) {
       }
 
       const effectiveCEFR = body.targetCEFR ?? profileInfo.targetCEFR;
-      const outcome = await extractFromTextAI(
-        {
-          text: normalizedText,
-          targetCEFR: effectiveCEFR,
-          sourceTitle: sourceName,
-        },
-        mergedKeys,
-      );
+      const [outcome, documentTranslation] = await Promise.all([
+        extractFromTextAI(
+          {
+            text: normalizedText,
+            targetCEFR: effectiveCEFR,
+            sourceTitle: sourceName,
+          },
+          mergedKeys,
+        ),
+        translateWithGoogle(normalizedText).catch((err) => {
+          console.warn('[GoogleTranslate Fallback Error]:', err);
+          return '';
+        }),
+      ]);
 
       if (!outcome.success) {
         return NextResponse.json({ error: outcome.error }, { status: 500 });
@@ -160,6 +167,7 @@ export async function POST(req: NextRequest) {
         directResult: {
           extracted_items: outcome.result.items,
           source_text: normalizedText,
+          document_translation: documentTranslation,
           warnings: parsedData?.warnings,
           pageCount: parsedData?.pageCount,
         },
@@ -299,14 +307,20 @@ export async function POST(req: NextRequest) {
           return;
         }
 
-        const outcome = await extractFromTextAI(
-          {
-            text: normalizedText,
-            targetCEFR: effectiveCEFR,
-            sourceTitle: sourceName,
-          },
-          mergedKeys,
-        );
+        const [outcome, documentTranslation] = await Promise.all([
+          extractFromTextAI(
+            {
+              text: normalizedText,
+              targetCEFR: effectiveCEFR,
+              sourceTitle: sourceName,
+            },
+            mergedKeys,
+          ),
+          translateWithGoogle(normalizedText).catch((err) => {
+            console.warn('[GoogleTranslate Bg Error]:', err);
+            return '';
+          }),
+        ]);
 
         if (!outcome.success) {
           await bgSupabase
@@ -334,6 +348,7 @@ export async function POST(req: NextRequest) {
               textLength: normalizedText.length,
               sourceTitle: sourceName,
               source_text: normalizedText,
+              document_translation: documentTranslation,
               extracted_items: outcome.result.items,
               stats: {
                 itemCount: outcome.result.items.length,

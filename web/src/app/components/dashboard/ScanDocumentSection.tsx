@@ -25,7 +25,8 @@ import {
   ShieldCheck,
   ExternalLink,
   ArrowRight,
-  Zap
+  Zap,
+  Loader2
 } from 'lucide-react';
 import UnifiedDropzone from './UnifiedDropzone';
 
@@ -49,6 +50,8 @@ export default function ScanDocumentSection({ onAddExtractedToDeck }: ScanDocume
   // Source document drawer states
   const [isSourceExpanded, setIsSourceExpanded] = useState<boolean>(true);
   const [showTranslation, setShowTranslation] = useState<boolean>(false);
+  const [documentTranslation, setDocumentTranslation] = useState<string>('');
+  const [isTranslating, setIsTranslating] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
 
   const [apiKeyStatus, setApiKeyStatus] = useState<'LOADING' | 'HEALTHY' | 'MISSING'>('LOADING');
@@ -149,6 +152,9 @@ export default function ScanDocumentSection({ onAddExtractedToDeck }: ScanDocume
         if (data.directResult.source_text) {
           setSourceText(data.directResult.source_text);
         }
+        if (data.directResult.document_translation) {
+          setDocumentTranslation(data.directResult.document_translation);
+        }
         if (data.jobId) setJobId(data.jobId);
         setCurrentPhase('RESULTS');
         return;
@@ -172,7 +178,7 @@ export default function ScanDocumentSection({ onAddExtractedToDeck }: ScanDocume
     const supabase = createClient();
     
     const interval = setInterval(async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('document_jobs')
         .select('status, progress_percent, result_summary, error_message')
         .eq('id', id)
@@ -189,6 +195,9 @@ export default function ScanDocumentSection({ onAddExtractedToDeck }: ScanDocume
             if (data.result_summary?.source_text) {
                setSourceText(data.result_summary.source_text);
             }
+            if (data.result_summary?.document_translation) {
+               setDocumentTranslation(data.result_summary.document_translation);
+            }
             setCurrentPhase('RESULTS');
           } else if (data.status === 'FAILED') {
             setJobError(data.error_message || 'Quá trình xử lý thất bại.');
@@ -203,6 +212,7 @@ export default function ScanDocumentSection({ onAddExtractedToDeck }: ScanDocume
     setCurrentPhase('INPUT');
     setSelectedInput(null);
     setSourceText('');
+    setDocumentTranslation('');
     setJobStatus('');
     setJobError(null);
   };
@@ -240,6 +250,32 @@ export default function ScanDocumentSection({ onAddExtractedToDeck }: ScanDocume
     navigator.clipboard.writeText(sourceText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleToggleTranslation = async () => {
+    const nextShow = !showTranslation;
+    setShowTranslation(nextShow);
+
+    if (nextShow && !documentTranslation && sourceText) {
+      setIsTranslating(true);
+      try {
+        const res = await fetch('/api/ai/translate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: sourceText, targetLang: 'vi' }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.translation) {
+            setDocumentTranslation(data.translation);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to translate document:', err);
+      } finally {
+        setIsTranslating(false);
+      }
+    }
   };
 
   // Find sample document translation from items if available
@@ -611,20 +647,22 @@ export default function ScanDocumentSection({ onAddExtractedToDeck }: ScanDocume
                 </button>
 
                 <div className="flex items-center gap-2">
-                  {sampleDocumentTranslation && (
-                    <button
-                      onClick={() => setShowTranslation(!showTranslation)}
-                      className={`text-xs px-2.5 py-1 rounded-lg border transition-all flex items-center gap-1.5 ${
-                        showTranslation 
-                          ? 'bg-indigo-500/20 text-indigo-200 border-indigo-500/30' 
-                          : 'bg-white/5 text-gray-400 hover:text-gray-200 border-white/10'
-                      }`}
-                      title="Xem bản dịch tiếng Việt của văn bản"
-                    >
+                  <button
+                    onClick={handleToggleTranslation}
+                    className={`text-xs px-2.5 py-1 rounded-lg border transition-all flex items-center gap-1.5 ${
+                      showTranslation 
+                        ? 'bg-indigo-500/20 text-indigo-200 border-indigo-500/30' 
+                        : 'bg-white/5 text-gray-400 hover:text-gray-200 border-white/10'
+                    }`}
+                    title="Xem toàn bộ bản dịch tiếng Việt qua Google Translate"
+                  >
+                    {isTranslating ? (
+                      <Loader2 className="w-3 h-3 animate-spin text-indigo-400" />
+                    ) : (
                       <Languages className="w-3 h-3" />
-                      <span>{showTranslation ? 'Ẩn bản dịch' : 'Xem bản dịch'}</span>
-                    </button>
-                  )}
+                    )}
+                    <span>{showTranslation ? 'Ẩn bản dịch' : isTranslating ? 'Đang dịch...' : 'Xem bản dịch'}</span>
+                  </button>
                   <button
                     onClick={handleCopySource}
                     className="text-xs px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-gray-200 border border-white/10 transition-colors flex items-center gap-1"
@@ -641,12 +679,22 @@ export default function ScanDocumentSection({ onAddExtractedToDeck }: ScanDocume
                   <div className="p-3.5 rounded-xl bg-[#0F1117] border border-white/5 text-xs sm:text-sm text-gray-200 leading-relaxed max-h-48 overflow-y-auto select-text font-sans">
                     {sourceText}
                   </div>
-                  {showTranslation && sampleDocumentTranslation && (
-                    <div className="p-3.5 rounded-xl bg-indigo-950/30 border border-indigo-500/20 text-xs sm:text-sm text-indigo-200/90 leading-relaxed max-h-48 overflow-y-auto select-text">
-                      <div className="text-[11px] font-bold uppercase tracking-wider text-indigo-400 mb-1 font-mono-data">
-                        Bản dịch tham khảo:
+                  {showTranslation && (
+                    <div className="p-3.5 rounded-xl bg-indigo-950/30 border border-indigo-500/20 text-xs sm:text-sm text-indigo-200/90 leading-relaxed max-h-48 overflow-y-auto select-text font-sans">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="text-[11px] font-bold uppercase tracking-wider text-indigo-400 font-mono-data flex items-center gap-1.5">
+                          <span>Bản dịch toàn văn tham khảo</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-normal">Google Translate</span>
+                        </div>
                       </div>
-                      {sampleDocumentTranslation}
+                      {isTranslating ? (
+                        <div className="flex items-center gap-2 text-indigo-300 text-xs py-2">
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Đang tạo bản dịch tiếng Việt đầy đủ...</span>
+                        </div>
+                      ) : (
+                        documentTranslation || sampleDocumentTranslation || 'Chưa có bản dịch cho đoạn văn này.'
+                      )}
                     </div>
                   )}
                 </div>
