@@ -3,6 +3,7 @@ import { Inter, Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { InstallModalProvider } from '@/lib/context/InstallModalContext';
 import ExtensionInstallModal from './components/landing/ExtensionInstallModal';
+import DesktopAdvisoryModal from './components/landing/DesktopAdvisoryModal';
 
 const inter = Inter({ 
   subsets: ['latin', 'vietnamese'], 
@@ -53,6 +54,7 @@ export default function RootLayout({
         <InstallModalProvider>
           {children}
           <ExtensionInstallModal />
+          <DesktopAdvisoryModal />
         </InstallModalProvider>
       </body>
     </html>
