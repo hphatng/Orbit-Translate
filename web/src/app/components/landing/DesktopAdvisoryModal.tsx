@@ -34,24 +34,22 @@ export default function DesktopAdvisoryModal() {
       return;
     }
 
-    // Detect if viewport is below desktop threshold (< 1024px)
-    const checkViewport = () => {
-      const isSmallScreen = window.innerWidth < 1024;
-      if (isSmallScreen) {
-        // Show with a gentle delay for smooth entrance
-        const timer = setTimeout(() => {
-          setIsVisible(true);
-        }, 600);
-        return () => clearTimeout(timer);
+    // Detect if viewport is below desktop threshold (< 1024px) or mobile device
+    const checkDevice = () => {
+      const isMobileOrTablet =
+        window.innerWidth < 1024 ||
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+      if (isMobileOrTablet) {
+        setIsVisible(true);
       }
     };
 
-    const cleanup = checkViewport();
-    window.addEventListener('resize', checkViewport);
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
 
     return () => {
-      if (cleanup) cleanup();
-      window.removeEventListener('resize', checkViewport);
+      window.removeEventListener('resize', checkDevice);
     };
   }, []);
 
