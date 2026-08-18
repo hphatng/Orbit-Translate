@@ -22,7 +22,12 @@
   let selectionTimeout = null;
 
   // Auto-detect Supabase Auth Session when user visits WebApp (seamless zero-click connection)
-  if (window.location.origin === 'http://localhost:3000' || window.location.hostname.includes('orbittranslate.ai')) {
+  if (
+    window.location.origin === 'http://localhost:3000' || 
+    window.location.hostname.includes('orbittranslate.ai') ||
+    window.location.hostname.includes('orbit-translate.vercel.app') ||
+    window.location.hostname.includes('vercel.app')
+  ) {
     const syncWebSession = () => {
       try {
         for (let i = 0; i < localStorage.length; i++) {
@@ -1036,7 +1041,10 @@
 
     if (prefs.showSRS && popup.querySelector('#orbit-srs-btn')) {
       popup.querySelector('#orbit-srs-btn').addEventListener('click', () => {
-        window.open('http://localhost:3000/dashboard', '_blank');
+        const dashboardUrl = (typeof window !== 'undefined' && window.location.origin.includes('localhost:3000'))
+          ? 'http://localhost:3000/dashboard'
+          : 'https://orbit-translate.vercel.app/dashboard';
+        window.open(dashboardUrl, '_blank');
       });
     }
 
@@ -1337,15 +1345,29 @@
     }
   });
 
-  // Listen for Auth Sync message from WebApp window
+  // Listen for Auth Sync message from WebApp window (Supports Chrome, Edge, Brave, etc.)
   window.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'ORBIT_EXTENSION_AUTH_SUCCESS') {
-      chrome.runtime.sendMessage({
-        type: 'SET_ORBIT_AUTH_TOKEN',
-        access_token: event.data.access_token,
-        refresh_token: event.data.refresh_token,
-        user: event.data.user
-      });
+      const accessToken = event.data.access_token || event.data.tokenData?.accessToken;
+      const refreshToken = event.data.refresh_token || event.data.tokenData?.refreshToken;
+      const user = event.data.user || (event.data.tokenData ? {
+        id: event.data.tokenData.userId,
+        email: event.data.tokenData.email,
+        user_metadata: { full_name: event.data.tokenData.fullName }
+      } : null);
+
+      if (accessToken) {
+        chrome.runtime.sendMessage({
+          type: 'SET_ORBIT_AUTH_TOKEN',
+          access_token: accessToken,
+          refresh_token: refreshToken,
+          user: user
+        }, (response) => {
+          try {
+            window.postMessage({ type: 'ORBIT_EXTENSION_ACK', success: true }, '*');
+          } catch (e) {}
+        });
+      }
     }
   });
 

@@ -61,6 +61,13 @@ function SignupPageContent() {
     !envUrl.includes('your-project');
 
   useEffect(() => {
+    const errorParam = searchParams.get('error_description') || searchParams.get('error');
+    if (errorParam) {
+      setErrorMessage(decodeURIComponent(errorParam));
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     async function checkAuth() {
       if (isConfigured) {
         try {
@@ -107,7 +114,7 @@ function SignupPageContent() {
             data: {
               full_name: fullName,
             },
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
+            emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTarget)}`,
           },
         });
 
@@ -128,7 +135,7 @@ function SignupPageContent() {
           if (data.session) {
             setSuccessMessage('Tạo tài khoản thành công! Đang chuyển hướng sang Dashboard...');
             setTimeout(() => {
-              router.push('/dashboard');
+              router.push(redirectTarget);
             }, 1000);
           } else {
             setIsLoading(false);
@@ -143,7 +150,7 @@ function SignupPageContent() {
 
       setTimeout(() => {
         setIsLoading(false);
-        router.push('/dashboard');
+        router.push(redirectTarget);
       }, 700);
     } catch (err: any) {
       const msg = err?.message || '';
@@ -161,15 +168,12 @@ function SignupPageContent() {
     setErrorMessage('');
     setInfoMessage('');
     try {
-      localStorage.setItem('orbit_logged_in', 'true');
-      localStorage.setItem('orbit_user_email', `google_user@orbittranslate.ai`);
-
       if (isConfigured) {
         const supabase = createClient();
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: `${window.location.origin}/auth/callback`,
+            redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTarget)}`,
           },
         });
         if (error) {
@@ -178,9 +182,11 @@ function SignupPageContent() {
           return;
         }
       } else {
+        localStorage.setItem('orbit_logged_in', 'true');
+        localStorage.setItem('orbit_user_email', `google_user@orbittranslate.ai`);
         setTimeout(() => {
           setIsLoading(false);
-          router.push('/dashboard');
+          router.push(redirectTarget);
         }, 700);
       }
     } catch (err: any) {

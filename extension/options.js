@@ -114,7 +114,7 @@ function renderAccountStatus() {
 
         btnConnect.onclick = () => {
           const extId = chrome.runtime.id;
-          chrome.tabs.create({ url: `http://localhost:3000/auth/extension-connect?extensionId=${extId}` });
+          chrome.tabs.create({ url: `https://orbit-translate.vercel.app/auth/extension-connect?extensionId=${extId}` });
         };
       }
     });

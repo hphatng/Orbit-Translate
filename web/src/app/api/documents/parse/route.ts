@@ -103,10 +103,67 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (jobError || !job) {
-      return NextResponse.json(
-        { error: 'Failed to create job', details: jobError },
-        { status: 500 },
+      console.warn('[API /api/documents/parse] document_jobs insert failed. Running direct in-memory extraction fallback:', jobError);
+      
+      let parsedData;
+      if (file) {
+        const fileBuffer = await file.arrayBuffer();
+        const detachedFile = new File([fileBuffer], file.name, { type: file.type });
+        const parsers: DocumentParser[] = [new PdfParser(), new DocxParser(), new TextParser()];
+        const parser = parsers.find((p) => p.canHandle(detachedFile));
+        if (!parser) {
+          return NextResponse.json({ error: 'Định dạng file không được hỗ trợ (.pdf, .docx, .txt)' }, { status: 400 });
+        }
+        parsedData = await parser.parse(detachedFile);
+      } else {
+        const textFile = new File([textContent ?? ''], 'pasted.txt', { type: 'text/plain' });
+        const parser = new TextParser();
+        parsedData = await parser.parse(textFile);
+      }
+
+      const normalizedText = parsedData?.text ?? '';
+      if (!normalizedText.trim()) {
+        return NextResponse.json({ error: 'Tài liệu không chứa nội dung văn bản để trích xuất.' }, { status: 400 });
+      }
+
+      const profileInfo = await readProfileInfo(supabase, user.id);
+      const suppliedKeys = Array.isArray(body.apiKeys) ? body.apiKeys : [];
+      const mergedKeys = mergeKeys(suppliedKeys, profileInfo.apiKeys);
+      if (process.env.GEMINI_API_KEY && !mergedKeys.some((k) => k.key === process.env.GEMINI_API_KEY)) {
+        mergedKeys.push({ id: 'env-default', name: 'Server Env Key', key: process.env.GEMINI_API_KEY, status: 'HEALTHY' });
+      }
+
+      if (mergedKeys.length === 0) {
+        return NextResponse.json(
+          { error: 'Chưa tìm thấy Gemini API Key. Vui lòng thêm API Key trong Settings hoặc thanh API Router.' },
+          { status: 400 },
+        );
+      }
+
+      const effectiveCEFR = body.targetCEFR ?? profileInfo.targetCEFR;
+      const outcome = await extractFromTextAI(
+        {
+          text: normalizedText,
+          targetCEFR: effectiveCEFR,
+          sourceTitle: sourceName,
+        },
+        mergedKeys,
       );
+
+      if (!outcome.success) {
+        return NextResponse.json({ error: outcome.error }, { status: 500 });
+      }
+
+      return NextResponse.json({
+        success: true,
+        jobId: 'in_memory_' + Date.now(),
+        directResult: {
+          extracted_items: outcome.result.items,
+          source_text: normalizedText,
+          warnings: parsedData?.warnings,
+          pageCount: parsedData?.pageCount,
+        },
+      });
     }
 
     const { data: { session } } = await supabase.auth.getSession();

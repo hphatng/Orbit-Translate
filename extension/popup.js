@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Open WebApp
   openWebBtn.addEventListener('click', () => {
-    chrome.tabs.create({ url: 'http://localhost:3000/dashboard' });
+    chrome.tabs.create({ url: 'https://orbit-translate.vercel.app/dashboard' });
   });
 
   // 1-Click Auto Copy Quizlet CSV Format (Term \t Definition \n)
@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
   searchInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && searchInput.value.trim()) {
       const term = searchInput.value.trim();
-      chrome.tabs.create({ url: `http://localhost:3000/dashboard?search=${encodeURIComponent(term)}` });
+      chrome.tabs.create({ url: `https://orbit-translate.vercel.app/dashboard?search=${encodeURIComponent(term)}` });
     }
   });
 });

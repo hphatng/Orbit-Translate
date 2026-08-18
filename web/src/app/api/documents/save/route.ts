@@ -23,27 +23,32 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { jobId, selectedItems } = body as {
-      jobId: string;
+    const { jobId, selectedItems, sourceTitle } = body as {
+      jobId?: string;
       selectedItems: ExtractedLearningItem[];
+      sourceTitle?: string;
     };
 
-    if (!jobId || !Array.isArray(selectedItems)) {
+    if (!Array.isArray(selectedItems)) {
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
-    // Verify job ownership via RLS.
-    const { data: job, error: jobError } = await supabase
-      .from('document_jobs')
-      .select('id, user_id, file_name')
-      .eq('id', jobId)
-      .single();
+    let fileName = sourceTitle ?? 'Scanned Document';
 
-    if (jobError || !job) {
-      return NextResponse.json({ error: 'Job not found' }, { status: 404 });
-    }
-    if (job.user_id !== user.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    // Verify job ownership if a persistent UUID jobId is supplied
+    if (jobId && !jobId.startsWith('in_memory_') && !jobId.startsWith('direct_') && jobId !== 'null') {
+      const { data: job } = await supabase
+        .from('document_jobs')
+        .select('id, user_id, file_name')
+        .eq('id', jobId)
+        .single();
+
+      if (job) {
+        if (job.user_id !== user.id) {
+          return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+        if (job.file_name) fileName = job.file_name;
+      }
     }
 
     // Ensure Scan AI deck exists (creates if absent).
@@ -56,7 +61,7 @@ export async function POST(req: NextRequest) {
     const result = await persistScanExtraction(
       user.id,
       selectedItems,
-      job.file_name ?? 'Scanned Document',
+      fileName,
       deckId,
       supabase, // <-- authenticated client for RLS
     );

@@ -54,6 +54,13 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // If user is already authenticated and visits the root landing page '/', redirect directly to '/dashboard'
+  if (request.nextUrl.pathname === '/' && user) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/dashboard';
+    return NextResponse.redirect(url);
+  }
+
   // Define protected routes that require authentication
   const protectedRoutes = ['/dashboard', '/study-hub', '/scan-extract', '/documents-translate'];
   const isProtectedRoute = protectedRoutes.some((route) => request.nextUrl.pathname.startsWith(route));

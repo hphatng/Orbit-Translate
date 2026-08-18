@@ -59,6 +59,13 @@ function LoginPageContent() {
     !envUrl.includes('your-project');
 
   useEffect(() => {
+    const errorParam = searchParams.get('error_description') || searchParams.get('error');
+    if (errorParam) {
+      setErrorMessage(decodeURIComponent(errorParam));
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     async function checkAuth() {
       if (isConfigured) {
         try {
@@ -122,9 +129,6 @@ function LoginPageContent() {
     setErrorMessage('');
     setInfoMessage('');
     try {
-      localStorage.setItem('orbit_logged_in', 'true');
-      localStorage.setItem('orbit_user_email', `google_user@orbittranslate.ai`);
-
       if (isConfigured || process.env.NODE_ENV === 'production') {
         const supabase = createClient();
         const { error } = await supabase.auth.signInWithOAuth({
@@ -139,6 +143,8 @@ function LoginPageContent() {
           return;
         }
       } else {
+        localStorage.setItem('orbit_logged_in', 'true');
+        localStorage.setItem('orbit_user_email', `google_user@orbittranslate.ai`);
         setTimeout(() => {
           setIsLoading(false);
           window.location.href = redirectTarget;

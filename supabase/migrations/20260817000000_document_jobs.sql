@@ -23,19 +23,23 @@ CREATE INDEX IF NOT EXISTS document_jobs_status_idx ON public.document_jobs(stat
 -- Enable RLS
 ALTER TABLE public.document_jobs ENABLE ROW LEVEL SECURITY;
 
--- RLS Policies
+-- RLS Policies (Idempotent)
+DROP POLICY IF EXISTS "Users can view their own document jobs" ON public.document_jobs;
 CREATE POLICY "Users can view their own document jobs" 
   ON public.document_jobs FOR SELECT 
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can insert their own document jobs" ON public.document_jobs;
 CREATE POLICY "Users can insert their own document jobs" 
   ON public.document_jobs FOR INSERT 
   WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update their own document jobs" ON public.document_jobs;
 CREATE POLICY "Users can update their own document jobs" 
   ON public.document_jobs FOR UPDATE 
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete their own document jobs" ON public.document_jobs;
 CREATE POLICY "Users can delete their own document jobs" 
   ON public.document_jobs FOR DELETE 
   USING (auth.uid() = user_id);

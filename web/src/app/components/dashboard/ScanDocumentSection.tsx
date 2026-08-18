@@ -132,20 +132,36 @@ export default function ScanDocumentSection({ onAddExtractedToDeck }: ScanDocume
       });
 
       if (!res.ok) {
-        const errText = await res.text();
-        console.error('API Error:', res.status, errText);
-        throw new Error(`API request failed: ${res.status} - ${errText}`);
+        let errMessage = `Yêu cầu xử lý thất bại (HTTP ${res.status})`;
+        try {
+          const errData = await res.json();
+          errMessage = errData.error || errData.message || (typeof errData.details === 'string' ? errData.details : JSON.stringify(errData.details)) || errMessage;
+        } catch {
+          const errText = await res.text();
+          if (errText) errMessage = errText;
+        }
+        throw new Error(errMessage);
       }
       const data = await res.json();
       
+      if (data.directResult) {
+        setExtractedItems(data.directResult.extracted_items || []);
+        if (data.directResult.source_text) {
+          setSourceText(data.directResult.source_text);
+        }
+        if (data.jobId) setJobId(data.jobId);
+        setCurrentPhase('RESULTS');
+        return;
+      }
+
       if (data.jobId) {
         setJobId(data.jobId);
         pollJobStatus(data.jobId);
       } else {
-        throw new Error('No job ID returned');
+        throw new Error('Không nhận được mã tiến trình từ máy chủ.');
       }
     } catch (e: any) {
-      console.error(e);
+      console.error('[ScanDocumentSection] parsing error:', e);
       setJobStatus('FAILED');
       setJobError(e?.message || 'Không thể khởi động tiến trình phân tích.');
     }
