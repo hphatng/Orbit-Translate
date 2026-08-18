@@ -1,0 +1,4 @@
+/* Content Script Root Style - Main styles are encapsulated inside Shadow DOM */
+#orbit-translate-root {
+  all: initial;
+}

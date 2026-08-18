@@ -1,0 +1,191 @@
+@import "tailwindcss";
+
+@theme {
+  --animate-sweep: sweep 1.5s ease-in-out infinite;
+  
+  @keyframes sweep {
+    0% { transform: translateX(-150%) skewX(-12deg); }
+    100% { transform: translateX(250%) skewX(-12deg); }
+  }
+}
+
+/* ==========================================
+   DESIGN TOKENS — Lexicon Pro & Orbit Translate Indigo & Obsidian
+   ========================================== */
+:root {
+  /* Colors */
+  --color-bg: #0F1117;          /* True Obsidian Base */
+  --color-surface: #181A22;     /* Dark Surface */
+  --color-surface-hover: #1f222d;
+  
+  --color-text: #e4e1ee;
+  --color-text-muted: #c7c4d8;
+  --color-text-subtle: #918fa1;
+  
+  --color-brand: #4f46e5;       /* Lexicon Pro Indigo Accent */
+  --color-brand-hover: #6366f1;
+  --color-brand-glow: rgba(79, 70, 229, 0.25);
+  
+  --color-fsrs-green: #10B981;  /* FSRS Green */
+  --color-mono-cyan: #06b6d4;   /* Cyan Glow Accent */
+
+  /* Borders & Shadows */
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --border-active: rgba(79, 70, 229, 0.5);
+  
+  --shadow-card: inset 0 0 0 1px rgba(255, 255, 255, 0.07), 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  --shadow-brand: 0 0 25px rgba(79, 70, 229, 0.3);
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ==========================================
+   CLEAN SURFACE UTILITIES (Replaces Glassmorphism)
+   ========================================== */
+.glass-card {
+  background-color: var(--color-surface);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.glass-modal {
+  background-color: var(--color-surface);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+}
+
+.progress-bar-fill {
+  background: linear-gradient(90deg, #4f46e5, #06b6d4);
+  box-shadow: 0 0 10px rgba(129, 140, 248, 0.5);
+}
+
+.text-glow {
+  text-shadow: 0 0 10px rgba(195, 192, 255, 0.3);
+}
+
+/* ==========================================
+   TYPOGRAPHY UTILITIES
+   ========================================== */
+.font-heading {
+  font-family: var(--font-heading), system-ui, sans-serif;
+  letter-spacing: -0.03em;
+}
+
+.font-mono-data {
+  font-family: var(--font-mono), monospace;
+}
+
+.landing-heading {
+  font-family: var(--font-heading), system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+}
+
+.text-gradient-indigo {
+  background: linear-gradient(135deg, #FFFFFF 30%, #818CF8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Blue/Indigo Selection Highlight */
+.blue-highlight {
+  background: linear-gradient(120deg, rgba(99, 102, 241, 0.35) 0%, rgba(59, 130, 246, 0.25) 100%);
+  border-radius: 3px;
+  padding: 2px 6px;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+}
+
+/* ==========================================
+   BUTTONS & CONTAINERS
+   ========================================== */
+.btn-primary-indigo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background-color: #4f46e5;
+  color: #FFFFFF;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 0.75rem 1.75rem;
+  font-size: 0.95rem;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 20px rgba(79, 70, 229, 0.35);
+}
+
+.btn-primary-indigo:hover {
+  background-color: #6366f1;
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 8px 30px rgba(79, 70, 229, 0.5);
+}
+
+.btn-secondary-dark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #F9FAFB;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 0.75rem 1.75rem;
+  font-size: 0.95rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-secondary-dark:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+.section-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  position: relative;
+}
+
+.card-obsidian {
+  background-color: var(--color-surface);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.card-obsidian:hover {
+  border-color: rgba(79, 70, 229, 0.3);
+  background-color: var(--color-surface-hover);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0F172A;
+}
+::-webkit-scrollbar-thumb {
+  background: #1E293B;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+::selection {
+  background: rgba(79, 70, 229, 0.4);
+  color: #FFFFFF;
+}
