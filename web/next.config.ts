@@ -5,6 +5,16 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   turbopack: {
     root: path.resolve(__dirname, ".."),
+    resolveAlias: {
+      zod: "./node_modules/zod",
+    },
+  },
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      zod: path.resolve(__dirname, "node_modules/zod"),
+    };
+    return config;
   },
   async headers() {
     return [
