@@ -1,9 +1,11 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowDown, Sparkles, CheckCircle2 } from 'lucide-react';
 import HeroDemoSwitcher from './HeroDemoSwitcher';
+import { useInstallModal } from '@/lib/context/InstallModalContext';
 
 // Dynamic import of 3D WebGL background to avoid SSR hydration issues
 const HeroFloatingWords3D = dynamic(() => import('../3d/HeroFloatingWords3D'), { ssr: false });
@@ -21,6 +23,22 @@ function ChromeIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export default function HeroSection() {
+  const { openInstallModal } = useInstallModal();
+  const [showScrollIndicator, setShowScrollIndicator] = useState(true);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 60) {
+        setShowScrollIndicator(false);
+      } else {
+        setShowScrollIndicator(true);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <section id="hero" className="relative pt-32 pb-16 lg:pt-40 lg:pb-20 bg-[#0B0F17] flex flex-col items-center overflow-hidden">
 
@@ -73,27 +91,21 @@ export default function HeroSection() {
           học tập bằng thuật toán FSRS — giúp bạn thuộc từ dài hạn mà không cần chép tay.
         </motion.p>
 
-        {/* CTA Buttons */}
+        {/* Centered Primary CTA Button */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
-          className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5 mb-10"
+          className="flex justify-center items-center mb-6"
         >
-          <a 
-            href="https://chromewebstore.google.com" 
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-primary-indigo text-[15px]" 
+          <button 
+            onClick={openInstallModal}
+            className="btn-primary-indigo text-[15px] !py-3.5 !px-8 flex items-center gap-2.5 cursor-pointer shadow-[0_10px_25px_-5px_rgba(99,102,241,0.4)] hover:shadow-[0_15px_30px_-5px_rgba(99,102,241,0.6)] transition-all" 
             id="hero-cta-primary"
           >
             <ChromeIcon className="w-5 h-5" />
             <span>Thêm vào Chrome — Miễn phí</span>
-          </a>
-          <a href="#learning-loop" className="btn-secondary-dark text-[15px]" id="hero-cta-secondary">
-            <span>Khám phá Vòng Lặp Học Tập</span>
-            <ArrowDown className="w-4 h-4 text-indigo-400" />
-          </a>
+          </button>
         </motion.div>
 
         {/* Trust Badges */}
@@ -112,6 +124,36 @@ export default function HeroSection() {
         <HeroDemoSwitcher />
 
       </div>
+
+      {/* Right Side Floating "Cuộn để khám phá" Indicator (Fades out smoothly upon scrolling) */}
+      <AnimatePresence>
+        {showScrollIndicator && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20, transition: { duration: 0.25 } }}
+            transition={{ delay: 0.6, duration: 0.6 }}
+            className="hidden lg:flex fixed right-6 xl:right-10 top-1/2 -translate-y-1/2 z-30 flex-col items-center gap-3 select-none pointer-events-auto"
+          >
+            <a
+              href="#learning-loop"
+              className="group flex flex-col items-center gap-3 text-gray-500 hover:text-indigo-400 transition-colors"
+              title="Cuộn để khám phá"
+            >
+              {/* Animated vertical track line */}
+              <div className="w-[1px] h-10 bg-gradient-to-b from-transparent via-indigo-500/40 to-indigo-400 relative overflow-hidden">
+                <div className="w-full h-1/2 bg-white animate-pulse" />
+              </div>
+
+              <span className="[writing-mode:vertical-rl] font-mono text-[10px] tracking-[0.2em] uppercase text-gray-400 group-hover:text-indigo-300 transition-colors">
+                Cuộn để khám phá
+              </span>
+
+              <ArrowDown className="w-3.5 h-3.5 text-indigo-400 group-hover:translate-y-1 transition-transform animate-bounce" />
+            </a>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

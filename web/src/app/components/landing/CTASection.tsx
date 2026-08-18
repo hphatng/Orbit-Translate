@@ -3,6 +3,7 @@
 import ScrollReveal from './ScrollReveal';
 import Link from 'next/link';
 import { LogIn, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { useInstallModal } from '@/lib/context/InstallModalContext';
 
 function ChromeIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -17,6 +18,8 @@ function ChromeIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export default function CTASection() {
+  const { openInstallModal } = useInstallModal();
+
   return (
     <section id="cta" className="relative py-20 lg:py-28 bg-[#0B0F17] overflow-hidden border-t border-white/5">
       {/* Background Radial Glow */}
@@ -63,16 +66,14 @@ export default function CTASection() {
               </div>
 
               <div>
-                <a 
-                  href="https://chromewebstore.google.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="btn-primary-indigo w-full justify-center text-sm py-3.5" 
+                <button 
+                  onClick={openInstallModal}
+                  className="btn-primary-indigo w-full justify-center text-sm py-3.5 flex items-center gap-2 cursor-pointer" 
                   id="cta-card-install"
                 >
                   <ChromeIcon className="w-4 h-4" />
                   <span>Thêm vào Chrome — Miễn phí</span>
-                </a>
+                </button>
                 <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-500 font-mono-data">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Cài đặt xong trong 10 giây
                 </div>

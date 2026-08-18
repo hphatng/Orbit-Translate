@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Inter, Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
+import { InstallModalProvider } from '@/lib/context/InstallModalContext';
+import ExtensionInstallModal from './components/landing/ExtensionInstallModal';
 
 const inter = Inter({ 
   subsets: ['latin', 'vietnamese'], 
@@ -47,7 +49,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi" className={`${inter.variable} ${plusJakartaSans.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
-      <body className="antialiased font-body bg-[#0F1117] text-gray-100" suppressHydrationWarning>{children}</body>
+      <body className="antialiased font-body bg-[#0F1117] text-gray-100" suppressHydrationWarning>
+        <InstallModalProvider>
+          {children}
+          <ExtensionInstallModal />
+        </InstallModalProvider>
+      </body>
     </html>
   );
 }

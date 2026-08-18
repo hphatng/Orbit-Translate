@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Globe } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import logoImg from '@/img/logo_2.png';
+import { useInstallModal } from '@/lib/context/InstallModalContext';
 
 function ChromeIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -21,9 +22,9 @@ function ChromeIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { openInstallModal } = useInstallModal();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [lang, setLang] = useState<'VI' | 'EN'>('VI');
   const [activeSection, setActiveSection] = useState<string>('');
 
   useEffect(() => {
@@ -80,6 +81,11 @@ export default function Navbar() {
       href: '/web-app#fsrs-algorithm', 
       isActive: (pathname === '/web-app' && activeSection === 'fsrs-algorithm') || (typeof window !== 'undefined' && window.location.hash === '#fsrs-algorithm')
     },
+    { 
+      label: 'Tài Liệu', 
+      href: '/docs', 
+      isActive: pathname === '/docs' 
+    },
   ];
 
   return (
@@ -87,7 +93,7 @@ export default function Navbar() {
       id="landing-navbar"
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-[#0B0F17]/90 backdrop-blur-xl border-b border-white/10 py-3.5 shadow-2xl'
+          ? 'bg-[#0B0F17]/90 backdrop-blur-xl py-3.5 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8)]'
           : 'bg-transparent py-5'
       }`}
     >
@@ -130,17 +136,6 @@ export default function Navbar() {
 
           {/* Action Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            
-            {/* Language Switcher */}
-            <button
-              onClick={() => setLang(lang === 'VI' ? 'EN' : 'VI')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-mono-data font-bold text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
-              title="Chuyển đổi ngôn ngữ hiển thị"
-            >
-              <Globe className="w-3.5 h-3.5 text-indigo-400" />
-              <span>{lang}</span>
-            </button>
-
             {/* Login */}
             <Link
               href="/login"
@@ -151,16 +146,14 @@ export default function Navbar() {
             </Link>
 
             {/* Install Button */}
-            <a
-              href="https://chromewebstore.google.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary-indigo flex items-center gap-2 !py-2 !px-4.5 !text-[13.5px]"
+            <button
+              onClick={openInstallModal}
+              className="btn-primary-indigo flex items-center gap-2 !py-2 !px-4.5 !text-[13.5px] cursor-pointer"
               id="nav-cta-btn"
             >
               <ChromeIcon className="w-4 h-4" />
               <span>Cài Extension</span>
-            </a>
+            </button>
           </div>
 
           {/* Mobile Toggle */}
@@ -195,16 +188,6 @@ export default function Navbar() {
             ))}
 
             <hr className="border-white/10 my-1" />
-            
-            <div className="flex items-center justify-between px-3 py-1">
-              <span className="text-sm text-gray-400">Ngôn ngữ giao diện:</span>
-              <button
-                onClick={() => setLang(lang === 'VI' ? 'EN' : 'VI')}
-                className="px-3 py-1 rounded-full bg-white/10 text-xs font-mono-data font-bold text-indigo-400"
-              >
-                {lang}
-              </button>
-            </div>
 
             <Link 
               href="/login" 
@@ -214,16 +197,16 @@ export default function Navbar() {
               Đăng nhập WebApp
             </Link>
 
-            <a 
-              href="https://chromewebstore.google.com" 
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => setMobileOpen(false)} 
-              className="btn-primary-indigo justify-center text-base py-3.5"
+            <button 
+              onClick={() => {
+                setMobileOpen(false);
+                openInstallModal();
+              }} 
+              className="btn-primary-indigo justify-center text-base py-3.5 flex items-center gap-2 cursor-pointer w-full"
             >
               <ChromeIcon className="w-5 h-5" />
               Cài Extension Free
-            </a>
+            </button>
           </div>
         </div>
       )}

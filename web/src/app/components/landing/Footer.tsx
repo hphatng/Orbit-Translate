@@ -43,6 +43,7 @@ export default function Footer() {
           <div>
             <h4 className="text-xs font-mono-data font-bold uppercase tracking-wider text-gray-300 mb-4">Tài Nguyên</h4>
             <ul className="space-y-2.5">
+              <li><Link href="/docs" className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">Tài Liệu Hướng Dẫn (Docs)</Link></li>
               <li><Link href="/dashboard" className="text-xs text-gray-400 hover:text-white transition-colors">Dashboard Quản Lý</Link></li>
               <li><Link href="/dashboard/practice" className="text-xs text-gray-400 hover:text-white transition-colors">Luyện Thẻ SRS Flashcard</Link></li>
               <li><Link href="/web-app#fsrs-algorithm" className="text-xs text-gray-400 hover:text-white transition-colors">Nghiên Cứu FSRS vs SM-2</Link></li>

@@ -23,6 +23,7 @@ import Footer from '../components/landing/Footer';
 import ScrollReveal from '../components/landing/ScrollReveal';
 import ExtensionMockup from '../components/landing/ExtensionMockup';
 import ExtensionVideoShowcase from '../components/landing/ExtensionVideoShowcase';
+import { useInstallModal } from '@/lib/context/InstallModalContext';
 
 function ChromeIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -40,38 +41,38 @@ const features = [
   {
     icon: <Zap className="w-6 h-6 text-indigo-400" />,
     title: 'Tra Từ & Dịch Ngữ Cảnh 0.1s',
-    desc: 'Chỉ cần bôi đen bất kỳ từ hoặc cụm từ nào, popup thông minh xuất hiện tức thời mà không che khuất dòng đọc chính của bạn.',
-    tag: 'Tốc độ tức thì',
+    desc: 'Bôi đen bất kỳ từ hoặc câu nào để nhận định nghĩa ngữ cảnh tức thì, phát âm chuẩn IPA Anh-Mỹ và phân loại từ vựng chuyên ngành.',
+    tag: 'Tốc độ 0.1s',
   },
   {
     icon: <Brain className="w-6 h-6 text-sky-400" />,
-    title: 'Deep NLP Dissection — Bóc Tách Câu',
-    desc: 'Phân tích toàn diện cấu trúc ngữ pháp mệnh đề, nhận diện cụm động từ (phrasal verbs) và thành ngữ (idioms) trong ngữ cảnh học thuật.',
+    title: 'Phân Tích Cú Pháp Deep NLP',
+    desc: 'Giải thích cấu trúc ngữ pháp tầng sâu của câu, bóc tách mệnh đề quan hệ và gắn nhãn độ khó CEFR chuẩn xác từ A1 đến C2.',
     tag: 'Deep NLP AI',
   },
   {
-    icon: <Bookmark className="w-6 h-6 text-amber-400" />,
-    title: 'Đánh Giá Cấp Độ CEFR & Từ Loại',
-    desc: 'Tự động phân loại từ vựng theo khung chuẩn Châu Âu A1 → C2 kèm từ loại (noun, verb, adj), giúp bạn đánh giá ngay độ khó.',
-    tag: 'CEFR A1-C2',
-  },
-  {
-    icon: <Link2 className="w-6 h-6 text-emerald-400" />,
-    title: 'Lưu Trọn Vẹn Câu Gốc & URL',
-    desc: 'Mỗi từ vựng được lưu kèm chính xác câu văn thực tế bạn vừa đọc và link bài viết gốc. Bạn luôn nhớ từ trong ngữ cảnh thực.',
+    icon: <Bookmark className="w-6 h-6 text-emerald-400" />,
+    title: 'Lưu Kèm Câu Gốc & Nguồn Đọc',
+    desc: 'Tự động lưu từ vựng kèm ngữ cảnh câu văn nguyên bản và đường link bài báo, phục vụ ôn tập ngữ cảnh thực tế trên WebApp.',
     tag: 'Context Preservation',
   },
   {
-    icon: <Volume2 className="w-6 h-6 text-violet-400" />,
-    title: 'Phát Âm IPA & Audio Bản Xứ',
-    desc: 'Phiên âm quốc tế chuẩn kèm phát âm giọng đọc bản xứ tự nhiên, hỗ trợ rèn luyện phát âm chính xác từ lần đầu gặp từ.',
+    icon: <Volume2 className="w-6 h-6 text-amber-400" />,
+    title: 'Phát Âm Chuẩn Audio Bản Xứ',
+    desc: 'Tích hợp audio phát âm chuẩn cho cả từ đơn và câu văn đầy đủ, hỗ trợ luyện nghe và bắt chước ngữ điệu chuẩn xác.',
     tag: 'Phonetic TTS',
   },
   {
-    icon: <ShieldCheck className="w-6 h-6 text-rose-400" />,
-    title: 'Smart AI Key Pool Router',
-    desc: 'Cơ chế điều phối xoay vòng đa Key Round-Robin, tự động Cooldown khi chạm 429 quota và fallback model mượt mà không gián đoạn.',
-    tag: 'Round-Robin Pool',
+    icon: <ShieldCheck className="w-6 h-6 text-purple-400" />,
+    title: 'Bảo Mật Quyền Riêng Tư 100%',
+    desc: 'Extension chỉ hoạt động khi bạn chủ động bôi đen văn bản. Hoàn toàn không theo dõi, không lưu trữ lịch sử duyệt web của bạn.',
+    tag: 'Privacy First',
+  },
+  {
+    icon: <Link2 className="w-6 h-6 text-rose-400" />,
+    title: 'Đồng Bộ 1-Click Sang FSRS WebApp',
+    desc: 'Tất cả từ đã lưu tự động xuất hiện trong kho Flashcard WebApp với thuật toán FSRS, giúp bạn ghi nhớ vĩnh viễn với nỗ lực tối thiểu.',
+    tag: 'FSRS Sync',
   },
 ];
 
@@ -113,6 +114,7 @@ const faqs = [
 ];
 
 export default function ExtensionPage() {
+  const { openInstallModal } = useInstallModal();
   const [demoMode, setDemoMode] = useState<'word' | 'sentence'>('word');
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
@@ -156,16 +158,14 @@ export default function ExtensionPage() {
 
           <ScrollReveal delay={200}>
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5 mb-12">
-              <a
-                href="https://chromewebstore.google.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-primary-indigo text-[15px]"
+              <button
+                onClick={openInstallModal}
+                className="btn-primary-indigo text-[15px] flex items-center gap-2 cursor-pointer"
                 id="extension-hero-cta"
               >
                 <ChromeIcon className="w-5 h-5" />
                 <span>Thêm vào Chrome — Miễn phí 100%</span>
-              </a>
+              </button>
               <a href="#install-guide" className="btn-secondary-dark text-[15px]">
                 <span>Xem hướng dẫn cài đặt</span>
               </a>
@@ -563,15 +563,13 @@ export default function ExtensionPage() {
             <p className="text-gray-300 text-base mb-8 max-w-xl mx-auto">
               Cài đặt miễn phí 100%, không cần thẻ tín dụng. Trải nghiệm tra từ và học FSRS ngay hôm nay.
             </p>
-            <a
-              href="https://chromewebstore.google.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary-indigo text-base !py-3.5 !px-8"
+            <button
+              onClick={openInstallModal}
+              className="btn-primary-indigo text-base !py-3.5 !px-8 flex items-center gap-2 cursor-pointer mx-auto"
             >
               <ChromeIcon className="w-5 h-5" />
               <span>Thêm vào Chrome — Miễn phí</span>
-            </a>
+            </button>
           </ScrollReveal>
         </div>
       </section>
