@@ -51,6 +51,7 @@ function SignupPageContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [infoMessage, setInfoMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
   const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || '';
@@ -60,15 +61,28 @@ function SignupPageContent() {
     !envUrl.includes('your-project');
 
   useEffect(() => {
-    const isLogged = typeof window !== 'undefined' && localStorage.getItem('orbit_logged_in') === 'true';
-    if (isLogged) {
-      router.replace(redirectTarget);
+    async function checkAuth() {
+      if (isConfigured) {
+        try {
+          const supabase = createClient();
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            router.replace(redirectTarget);
+          } else {
+            localStorage.removeItem('orbit_logged_in');
+          }
+        } catch {
+          localStorage.removeItem('orbit_logged_in');
+        }
+      }
     }
-  }, [router, redirectTarget]);
+    checkAuth();
+  }, [isConfigured, redirectTarget, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
+    setInfoMessage('');
     setSuccessMessage('');
 
     if (!fullName || !email || !password) {
@@ -142,17 +156,18 @@ function SignupPageContent() {
     }
   };
 
-  const handleOAuth = async (provider: 'google' | 'github') => {
+  const handleGoogleOAuth = async () => {
     setIsLoading(true);
     setErrorMessage('');
+    setInfoMessage('');
     try {
       localStorage.setItem('orbit_logged_in', 'true');
-      localStorage.setItem('orbit_user_email', `${provider}_user@orbittranslate.ai`);
+      localStorage.setItem('orbit_user_email', `google_user@orbittranslate.ai`);
 
       if (isConfigured) {
         const supabase = createClient();
         const { error } = await supabase.auth.signInWithOAuth({
-          provider,
+          provider: 'google',
           options: {
             redirectTo: `${window.location.origin}/auth/callback`,
           },
@@ -172,6 +187,11 @@ function SignupPageContent() {
       setErrorMessage(err?.message || 'Có lỗi xảy ra.');
       setIsLoading(false);
     }
+  };
+
+  const handleGithubClick = () => {
+    setErrorMessage('');
+    setInfoMessage('Tính năng đăng ký với GitHub đang trong giai đoạn phát triển. Vui lòng tiếp tục với Google hoặc Email.');
   };
 
   return (
@@ -229,7 +249,8 @@ function SignupPageContent() {
             {/* OAuth Buttons */}
             <div className="space-y-3 mb-6">
               <button
-                onClick={() => handleOAuth('google')}
+                type="button"
+                onClick={handleGoogleOAuth}
                 disabled={isLoading}
                 className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm font-semibold text-white transition-all hover:border-white/25 active:scale-[0.99] disabled:opacity-50"
               >
@@ -238,21 +259,37 @@ function SignupPageContent() {
               </button>
 
               <button
-                onClick={() => handleOAuth('github')}
-                disabled={isLoading}
-                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm font-semibold text-white transition-all hover:border-white/25 active:scale-[0.99] disabled:opacity-50"
+                type="button"
+                onClick={handleGithubClick}
+                className="w-full flex items-center justify-between py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm font-semibold text-white transition-all hover:border-white/25 active:scale-[0.99]"
               >
-                <GithubIcon />
-                <span>Đăng ký nhanh với GitHub</span>
+                <div className="flex items-center gap-3">
+                  <GithubIcon />
+                  <span>Đăng ký nhanh với GitHub</span>
+                </div>
+                <span className="text-[10px] font-mono-data font-bold px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                  Đang phát triển
+                </span>
               </button>
             </div>
 
-            <div className="relative flex items-center justify-center my-6">
-              <div className="border-t border-white/10 w-full" />
-              <span className="bg-[#131722] px-3 text-xs text-gray-500 font-mono-data uppercase">
-                hoặc điền thông tin
+            {infoMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-5 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono-data leading-relaxed flex items-start gap-2.5"
+              >
+                <Sparkles className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <span>{infoMessage}</span>
+              </motion.div>
+            )}
+
+            <div className="relative flex items-center my-6">
+              <div className="flex-grow border-t border-white/10" />
+              <span className="shrink-0 px-3 text-[11px] font-mono-data font-semibold uppercase tracking-wider text-gray-500 bg-[#131722] select-none">
+                Hoặc Điền Thông Tin
               </span>
-              <div className="border-t border-white/10 w-full" />
+              <div className="flex-grow border-t border-white/10" />
             </div>
 
             {errorMessage && (
