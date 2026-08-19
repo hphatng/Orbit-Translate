@@ -19,6 +19,21 @@ export default function Home() {
   useEffect(() => {
     async function checkUserSession() {
       try {
+        if (typeof window !== 'undefined') {
+          const params = new URLSearchParams(window.location.search);
+          if (
+            params.has('download') ||
+            params.has('install') ||
+            params.get('action') === 'install' ||
+            params.get('action') === 'download' ||
+            window.location.hash.includes('install') ||
+            window.location.hash.includes('download')
+          ) {
+            setCheckingAuth(false);
+            return;
+          }
+        }
+
         const supabase = createClient();
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
